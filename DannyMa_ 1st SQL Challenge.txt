@@ -1,0 +1,145 @@
+Table Creating
+CREATE TABLE sales (
+  customer_id VARCHAR(1),
+  order_date DATE,
+  product_id INTEGER
+);
+
+INSERT INTO sales
+  (customer_id, order_date, product_id)
+VALUES
+  ('A', '2021-01-01', '1'),
+  ('A', '2021-01-01', '2'),
+  ('A', '2021-01-07', '2'),
+  ('A', '2021-01-10', '3'),
+  ('A', '2021-01-11', '3'),
+  ('A', '2021-01-11', '3'),
+  ('B', '2021-01-01', '2'),
+  ('B', '2021-01-02', '2'),
+  ('B', '2021-01-04', '1'),
+  ('B', '2021-01-11', '1'),
+  ('B', '2021-01-16', '3'),
+  ('B', '2021-02-01', '3'),
+  ('C', '2021-01-01', '3'),
+  ('C', '2021-01-01', '3'),
+  ('C', '2021-01-07', '3');
+ 
+
+CREATE TABLE menu (
+  product_id INTEGER,
+  product_name VARCHAR(5),
+  price INTEGER
+);
+
+INSERT INTO menu
+  (product_id, product_name, price)
+VALUES
+  ('1', 'sushi', '10'),
+  ('2', 'curry', '15'),
+  ('3', 'ramen', '12');
+  
+
+CREATE TABLE members (
+  customer_id VARCHAR(1),
+  join_date DATE
+);
+
+INSERT INTO members
+  (customer_id, join_date)
+VALUES
+  ('A', '2021-01-07'),
+  ('B', '2021-01-09');
+
+
+
+
+------1 QUESTION
+SELECT s.customer_id,sum(m.price) as total FROM sales s
+LEFT JOIN menu m 
+ON s.product_id = m.product_id
+GROUP BY s.customer_id
+
+-------2 QUESTION
+SELECT distinct customer_id, Count(customer_id) as No_of_times_visit
+FROM sales
+GROUP BY customer_id
+
+-----3 Question
+SELECT s.customer_id,s.order_date,m.product_name
+FROM sales s
+LEFT JOIN menu m
+ON s.product_id = m.product_id
+ORDER BY s.order_date ASC
+
+--------4 question
+SELECT S.customer_id,m.product_name,count(S.product_id) as times
+FROM sales S
+JOIN menu m
+ON S.product_id = m.product_id
+group by S.customer_id,m.product_name
+Order by times desc,S.customer_id
+
+-------5 Question
+with cte as (
+SELECT s.customer_id,m.product_name,
+  count(m.product_name) as productname,
+row_number() over (partition by s.customer_id order by count(m.product_id) desc) as rn
+from sales s
+left join menu m
+on s.product_id = m.product_id
+group by s.customer_id,m.product_name )
+
+SELECT * FROM CTE
+where rn = 1
+
+----6 Question
+with CTE as (
+SELECT s.customer_id,m.product_name,
+row_number() over (partition by s.customer_id order by s.order_date asc ) as rn
+from sales s
+left join menu m
+on s.product_id = m.product_id
+left join members k
+on s.customer_id = k.customer_id
+where s.order_date > k.join_date) 
+
+SELECT * FROM CTE
+where rn = 1
+
+----7 Question
+with CTE as (
+SELECT s.customer_id,m.product_name,
+row_number() over (partition by s.customer_id order by s.order_date asc ) as rn
+from sales s
+left join menu m
+on s.product_id = m.product_id
+left join members k
+on s.customer_id = k.customer_id
+where s.order_date < k.join_date) 
+
+SELECT * FROM CTE
+where rn = 1
+
+----8 Question
+SELECT s.customer_id,Count(m.product_id),Sum(price) as total_sum
+from sales s
+left join menu m
+on s.product_id = m.product_id
+left join members k
+on s.customer_id = k.customer_id
+where s.order_date < k.join_date
+group by s.customer_id
+
+-----9 Question
+SELECT s.customer_id,m.product_name,
+sum(case when m.product_name = 'sushi' then m.price = 2*m.price
+else 1*m.price end) as multiplier
+from sales s
+left join menu m
+on s.product_id = m.product_id
+group by s.customer_id,m.product_name
+
+
+
+
+
